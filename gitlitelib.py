@@ -11,10 +11,12 @@ import re
 import sys
 import zlib
 
-# To work with command line arguments
+
+# To work with command line arguments.
 argparser = argparse.ArgumentParser(description="Content tracker")
 
-# To work with sub-commands
+
+# To work with sub-commands.
 argsubparsers = argparser.add_subparsers(title="Commands", dest="command")
 
 
@@ -37,3 +39,61 @@ def main(argv=sys.argv[1:]):
         case "status"       : cmd_status(args)
         case "tag"          : cmd_tag(args)
         case _              : print("Command not found.")
+
+
+class GitRepository(object):
+    # Represents a git repository.
+
+    worktree = None
+    gitdir = None
+    conf = None
+
+    def __init__(self, path, force=False):
+        self.worktree = path
+        self.gitdir = os.path.join(path, ".git") # A Git repo has a .git folder.
+
+        if not (force or os.path.isdir(self.gitdir)):
+            raise Exception("Not a Git repository %s"% path)
+        
+        # Read configuration in .git/config
+        self.conf = configparser.ConfigParser()
+        cf = repo_file(self, "config")
+
+        if cf and os.path.exists(cf):
+            self.conf.read([cf])
+        elif not force:
+            raise Exception("Configuration file missing.")
+        
+        if not force:
+            vers = int(self.conf.get("core", "repositoryformatversion"))
+            if vers != 0:
+                raise Exception("Unsupported repository format version %s" % vers)
+            
+    
+def repo_path(repo, *path):
+    # Compute path under repo's gitdir.
+    return os.path.join(repo.gitdir, *path)
+
+
+def repo_file(repo, *path, mkdir=False):
+    # Same as repo_path, but create dirname(*path) if absent.
+    if repo_dir(repo, *path[:-1],mkdir=mkdir):
+        return repo_path(repo, *path)
+    
+    
+def repo_dir(repo, *path, mkdir=False):
+    # Same as repo_path, but mkdir *path if absent if mkdir.
+    path = repo_path(repo, *path)
+    
+    if os.path.exists(path):
+        if (os.path.isdir(path)): # If it is a directory
+            return path
+        else:
+            raise Exception("Not a directory %s" % path)
+        
+    
+    if mkdir:
+        os.makedirs(path)
+        
+    else:
+        return None
