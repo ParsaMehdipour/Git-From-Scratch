@@ -4,7 +4,8 @@ Git-From-Scratch is a simplified version control system inspired by Git. This pr
 
 ## Features
 - Initialize a repository.
-- Add and track changes to files.
+- Add files for tracking.
+- Remove files from tracking.
+- View repository status.
 - Commit changes with messages.
 - View commit history.
-- Revert to previous versions.
