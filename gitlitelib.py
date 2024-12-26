@@ -41,9 +41,9 @@ def main(argv=sys.argv[1:]):
         case _              : print("Command not found.")
 
 
+# Represents a git repository.
 class GitRepository(object):
-    # Represents a git repository.
-
+    
     worktree = None
     gitdir = None
     conf = None
@@ -68,8 +68,56 @@ class GitRepository(object):
             vers = int(self.conf.get("core", "repositoryformatversion"))
             if vers != 0:
                 raise Exception("Unsupported repository format version %s" % vers)
-            
+
+
+# Create a new repository at path            
+def repo_create(path):
     
+    repo = GitRepository(path, True)
+    
+    # Make sure the path either doesn't exist or is an empty dir
+    if os.path.exists(repo.worktree): # If exists
+        if not os.path.isdir(repo.worktree):
+            raise Exception("%s is not a directory!" % path)
+        if os.path.exists(repo.gitdir) and os.listdir(repo.gitdir):
+            raise Exception("%s is not empty!" % path)
+    else: # If does not exist
+        os.makedirs(repo.worktree)
+        
+    # Assertions to create directories
+    assert repo_dir(repo, "branches", mkdir=True)
+    assert repo_dir(repo, "objects", mkdir=True)
+    assert repo_dir(repo, "refs", "tags", mkdir=True)
+    assert repo_dir(repo, "refs", "heads", mkdir=True)
+    
+    # .git/description
+    with open(repo_file(repo, "description"), "w") as f:
+        f.write("Unknown repository; edit this file 'description' to name the repository.\n")
+        
+    # .git/HEAD
+    with open(repo_file(repo, "HEAD"), "w") as f:
+        f.write("ref: refs/heads/master\n") 
+    
+    # .git/config  
+    with open(repo_file(repo, "config"), "w") as f:
+        config = repo_default_config()
+        config.write(f)
+    
+    return repo       
+
+
+# Create the INI data
+def repo_default_config():
+    ret = configparser.ConfigParser()
+    
+    ret.add_section("core")
+    ret.set("core", "repositoryformatversion", "0")
+    ret.set("core", "filemode", "false")
+    ret.set("core", "bare", "false")
+    
+    return ret
+
+# Utility functions
 def repo_path(repo, *path):
     # Compute path under repo's gitdir.
     return os.path.join(repo.gitdir, *path)
@@ -96,3 +144,4 @@ def repo_dir(repo, *path, mkdir=False):
         
     else:
         return None
+    
