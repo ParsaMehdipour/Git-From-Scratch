@@ -144,6 +144,7 @@ def repo_file(repo, *path, mkdir=False):
 def repo_dir(repo, *path, mkdir=False):
     # Same as repo_path, but mkdir *path if absent if mkdir.
     path = repo_path(repo, *path)
+    print(f"Checking directory: {path}, mkdir={mkdir}") 
     
     if os.path.exists(path):
         if (os.path.isdir(path)): # If it is a directory
@@ -152,8 +153,13 @@ def repo_dir(repo, *path, mkdir=False):
             raise Exception("Not a directory %s" % path)
     
     if mkdir:
-        os.makedirs(path)
-        
+        try:
+            os.makedirs(path)
+            print(f"Created directory: {path}")  # Debugging output
+        except Exception as e:
+            print(f"Error creating directory {path}: {e}")  # Debugging output
+            raise
+        return path
     else:
         return None
     
