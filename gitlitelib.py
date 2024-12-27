@@ -20,7 +20,7 @@ argparser = argparse.ArgumentParser(description="Content tracker")
 argsubparsers = argparser.add_subparsers(title="Commands", dest="command")
 
 # Init
-argsp = argsubparsers.add_parser("init", help="Inintilize a new, empty repository.")
+argsp = argsubparsers.add_parser("init", help="Initialize a new, empty repository.")
 argsp.add_argument("path",
                    metavar="directory",
                    nargs="?",
@@ -28,7 +28,9 @@ argsp.add_argument("path",
                    help="Where to create the repository")
 
 def main(argv=sys.argv[1:]):
+    print(f"Arguments passed: {argv}")
     args = argparser.parse_args(argv)
+    print(f"Parsed arguments: {args}")
     match args.command:
         case "add"          : cmd_add(args)
         case "cat-file"     : cmd_cat_file(args)
