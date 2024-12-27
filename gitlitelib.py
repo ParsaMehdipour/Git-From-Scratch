@@ -19,6 +19,13 @@ argparser = argparse.ArgumentParser(description="Content tracker")
 # To work with sub-commands.
 argsubparsers = argparser.add_subparsers(title="Commands", dest="command")
 
+# Init
+argsp = argsubparsers.add_parser("init", help="Inintilize a new, empty repository.")
+argsp.add_argument("path",
+                   metavar="directory",
+                   nargs="?",
+                   default=".",
+                   help="Where to create the repository")
 
 def main(argv=sys.argv[1:]):
     args = argparser.parse_args(argv)
@@ -69,6 +76,9 @@ class GitRepository(object):
             if vers != 0:
                 raise Exception("Unsupported repository format version %s" % vers)
 
+# Init
+def cmd_init(args):
+    repo_create(args.path)
 
 # Create a new repository at path            
 def repo_create(path):
