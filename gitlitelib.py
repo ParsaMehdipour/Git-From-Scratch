@@ -118,6 +118,26 @@ def repo_create(path):
     return repo       
 
 
+def repo_find(path=".", required=True):
+    path = os.path.realpath(path)
+    
+    if os.path.isdir(os.path.join(path, ".git")):
+        return GitRepository(path)
+    
+    # If we haven't returned, recurse in parent
+    parent = os.path.realpath(os.path.join(path, ".."))
+    
+    if parent == path:
+        if required:
+            raise Exception("No git directory.")
+        else:
+            return None
+    
+    # Recursive call
+    return repo_find(parent, required)
+        
+
+
 # Create the INI data
 def repo_default_config():
     ret = configparser.ConfigParser()
@@ -128,6 +148,7 @@ def repo_default_config():
     ret.set("core", "bare", "false")
     
     return ret
+
 
 # Utility functions
 def repo_path(repo, *path):
