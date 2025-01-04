@@ -78,6 +78,59 @@ class GitRepository(object):
             if vers != 0:
                 raise Exception("Unsupported repository format version %s" % vers)
 
+# git hash-object git cat-file : hash-object => converts a file into a git object
+# cat-file => print a git object to the standard output
+# git object => content-addressed filesystem
+class GitObject(object):
+    def __init__(self, data=None):
+        if data != None:
+            self.deserialize(data)
+        else:
+            self.init()
+      
+    # This function will be implemented by subclasses  
+    def serialize(self, repo):
+        raise Exception("Unimplemented!")
+    
+    
+    def deserialize(self, data):
+        raise Exception("Unimplemented!")
+        
+    
+    def init(self):
+        pass
+
+# Read object sha from git repository
+def object_read(repo, sha):
+    path = repo_file(repo, "objects", sha[0:2], sha[2:1])
+    
+    if not os.path.isfile(path):
+        return None
+    
+    with open(path, 'rb') as f:
+        raw = zlib.decompress(f.read())
+        
+        # Object type
+        x = raw.find(b' ')
+        fmt = raw[0:x]
+        
+        # Read and validate object size
+        y = raw.find(b'\x00', x)
+        size = int(raw[x:y].decode("ascii"))
+        if size != (len(raw) - y - 1):
+            raise Exception("Malformed object {0}: bad length".format(sha))
+        
+        match fmt:
+            case b'commit' : c=GitCommt
+            case b'tree'   : c=GitTree
+            case b'tag'    : c=GitTag
+            case b'blob'   : c=GitBlob
+            case _: raise Exception("Unknown type {0} for object {1}".format(fmt.decode("ascii"), sha))
+            
+        
+        return c(raw[y+1:])
+
+
 # Init
 def cmd_init(args):
     repo_create(args.path)
@@ -134,8 +187,7 @@ def repo_find(path=".", required=True):
             return None
     
     # Recursive call
-    return repo_find(parent, required)
-        
+    return repo_find(parent, required)                
 
 
 # Create the INI data
