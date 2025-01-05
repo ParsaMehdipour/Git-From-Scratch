@@ -20,6 +20,7 @@ argparser = argparse.ArgumentParser(description="Content tracker")
 argsubparsers = argparser.add_subparsers(title="Commands", dest="command")
 
 # Init
+# gitlite init [path]
 argsp = argsubparsers.add_parser("init", help="Initialize a new, empty repository.")
 argsp.add_argument(
     "path",
@@ -28,6 +29,16 @@ argsp.add_argument(
     default=".",
     help="Where to create the repository",
 )
+# Cat-file
+# gitlite cat-file TYPE OBJECT
+argsp = argsubparsers.add_parser("cat-file", help="Display content of repository objects")
+argsp.add_argument("type",
+                   metavar="type",
+                   choices=["blob", "commit", "tag", "tree"],
+                   help="Specify the type")
+argsp.add_argument("object",
+                   metavar="object",
+                   help="The object to display")
 
 
 def main(argv=sys.argv[1:]):
@@ -129,6 +140,25 @@ class GitBlob(GitObject):
         self.blobdata = data
 
 
+# Init
+def cmd_init(args):
+    repo_create(args.path)
+
+
+def cmd_cat_file(args):
+    repo = repo_find()
+    cat_file(repo, args.object, fmt=args.type.encode())
+    
+
+def cat_file(repo, obj, fmt=None):
+    obj = object_read(repo, object_find(repo, obj, fmt=fmt))
+    sys.stdout.buffer.write(obj.serialize())
+
+
+def object_find(repo, name, fmt=None, follow=True):
+    return name
+
+
 # Read object sha from git repository
 def object_read(repo, sha):
     path = repo_file(repo, "objects", sha[0:2], sha[2:1])
@@ -183,11 +213,6 @@ def object_write(obj, repo=None):
                 # Compress and write
                 f.write(zlib.compress(result))
     return sha
-
-
-# Init
-def cmd_init(args):
-    repo_create(args.path)
 
 
 # Create a new repository at path
