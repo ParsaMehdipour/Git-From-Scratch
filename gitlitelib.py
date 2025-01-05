@@ -19,6 +19,7 @@ argparser = argparse.ArgumentParser(description="Content tracker")
 # To work with sub-commands.
 argsubparsers = argparser.add_subparsers(title="Commands", dest="command")
 
+
 # Init
 # gitlite init [path]
 argsp = argsubparsers.add_parser("init", help="Initialize a new, empty repository.")
@@ -29,6 +30,8 @@ argsp.add_argument(
     default=".",
     help="Where to create the repository",
 )
+
+
 # Cat-file
 # gitlite cat-file TYPE OBJECT
 argsp = argsubparsers.add_parser("cat-file", help="Display content of repository objects")
@@ -145,6 +148,7 @@ def cmd_init(args):
     repo_create(args.path)
 
 
+# Cat-file
 def cmd_cat_file(args):
     repo = repo_find()
     cat_file(repo, args.object, fmt=args.type.encode())
