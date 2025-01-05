@@ -119,6 +119,16 @@ class GitObject(object):
         pass
 
 
+class GitBlob(GitObject):
+    fmt = b"blob"
+
+    def serialize(self):
+        return self.blobdata
+
+    def deserialize(self, data):
+        self.blobdata = data
+
+
 # Read object sha from git repository
 def object_read(repo, sha):
     path = repo_file(repo, "objects", sha[0:2], sha[2:1])
