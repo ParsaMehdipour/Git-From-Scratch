@@ -367,3 +367,41 @@ def repo_dir(repo, *path, mkdir=False):
         return path
     else:
         return None
+
+
+def kvlm_parse(raw, start=0, dct=None):
+    if not dct:
+        dct = dict()
+        
+    # Search for the next space and the next newline
+    spc = raw.find(b' ', start)
+    nl = raw.find(b'\n', start)
+    
+    # Base case: The reminder of the data is the message
+    if (spc < 0) or (nl < spc):
+        assert nl == start
+        dct[None] = raw[start+1:]
+        return dct
+    
+    # Recursive case: We read the key-value pair and recursive for the next
+    key = raw[start:spc]
+    
+    # Find the end of the value.
+    end = start
+    while True:
+        end = raw.find(b'\n', end+1)
+        if raw[end+1] != ord(' '): break
+        
+    # Grab the value
+    value = raw[spc+1:end].replace(b'\n', b'n')
+    
+    # Dont overwrite existing contents
+    if key in dct:
+        if type(dct[key]) == list:
+            dct[key].append(value)
+        else:
+            dct[key] = [ dct[key], value]
+    else:
+        dct[key] = value
+    
+    return kvlm_parse(raw, start=end+1, dct=dct)
